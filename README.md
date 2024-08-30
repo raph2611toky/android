@@ -117,7 +117,7 @@ Si vous souhaitez contribuer à **Ikonnect Mobile**, voici comment vous pouvez l
 
 ## Documentation
 
-Pour une documentation détaillée sur la structure de la base de données et les opérations spécifiques liées aux SMS et MMS, consultez le fichier [mmssms_databases.md](./mmssms_databases.md).
+Pour une documentation détaillée sur la structure de la base de données et les opérations spécifiques liées aux SMS et MMS, consultez le fichier [mmssms_database.md](./mmssms_database.md).
 
 ## Contact
 

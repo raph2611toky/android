@@ -44,7 +44,6 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
             cursor?.use {
                 while (it.moveToNext()) {
                     val discussion = mapCursorToDiscussion(it)
-                    //discussion.messages = getMessagesForThread(contentResolver, discussion.threadId)
                     discussionsList.add(discussion)
                 }
             }
@@ -53,16 +52,19 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private fun logAvailableColumns(cursor: Cursor) {
+    private fun logAvailableColumns(cursor: Cursor, tableName: String) {
         val columnNames = cursor.columnNames
-        Log.i("-------- Colonne disponible ---------","-------- Colonne disponible ---------")
-        for (columnName in columnNames) {
-            Log.d("AvailableColumns", "Column: $columnName")
-        }
+        val columnCount = columnNames.size
+        val columnNamesString = columnNames.joinToString(", ")
+
+        Log.i("Table Info: nom de la table", "Table: $tableName")
+        Log.i("Table Info: nombre de colonne", "Number of Columns: $columnCount")
+        Log.i("Table Info: les colonnes ", "Columns: $columnNamesString")
     }
 
+
     private fun mapCursorToDiscussion(cursor: Cursor): Discussion {
-        logAvailableColumns(cursor)
+        logAvailableColumns(cursor, "discussion")
         val threadId = cursor.safeGetInt("thread_id")
         val snippet = cursor.safeGetString("snippet") ?: ""
         val messageCount = cursor.safeGetInt("msg_count")
@@ -120,7 +122,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun mapCursorToMessage(cursor: Cursor): Message {
-        logAvailableColumns(cursor)
+        logAvailableColumns(cursor, "message")
         val id = cursor.safeGetString("_id")
         val body = cursor.safeGetString("body")
         val date = cursor.safeGetLong("date")
