@@ -1,7 +1,26 @@
-La base de données `mmssms.db` utilisée par l'application Messages sur Android contient plusieurs tables importantes, principalement pour stocker les messages SMS, MMS, et les informations connexes. Voici un aperçu des tables principales et de leurs colonnes typiques.
+
+---
+
+# Aperçu de la Base de Données `mmssms.db`
+
+La base de données `mmssms.db` utilisée par l'application Messages sur Android contient plusieurs tables importantes, principalement pour stocker les messages SMS, MMS, et les informations connexes. Voici un aperçu des tables principales, de leurs colonnes typiques, et des URI pour accéder à chaque table via le Content Provider.
+
+## Emplacement de la Base de Données
+
+La base de données `mmssms.db` est généralement stockée à l'emplacement suivant sur un appareil Android :
+
+```
+/data/data/com.android.providers.telephony/databases/mmssms.db
+```
+
+L'accès à cette base de données nécessite des privilèges root sur l'appareil Android.
+
+## Tables et URI
 
 ### 1. **Table `sms`**
 Cette table stocke les messages SMS.
+
+- **URI d'accès :** `content://sms/`
 
 | Colonne               | Type     | Description                                                                                     |
 |-----------------------|----------|-------------------------------------------------------------------------------------------------|
@@ -28,6 +47,8 @@ Cette table stocke les messages SMS.
 ### 2. **Table `threads`**
 Cette table contient des informations sur les fils de discussion (regroupant les messages par conversation).
 
+- **URI d'accès :** `content://sms/conversations/`
+
 | Colonne                | Type     | Description                                                                                     |
 |------------------------|----------|-------------------------------------------------------------------------------------------------|
 | `_id`                  | INTEGER  | Identifiant unique pour chaque fil de discussion.                                               |
@@ -49,6 +70,8 @@ Cette table contient des informations sur les fils de discussion (regroupant les
 
 ### 3. **Table `mms`**
 Cette table contient les messages MMS.
+
+- **URI d'accès :** `content://mms/`
 
 | Colonne                  | Type     | Description                                                                                     |
 |--------------------------|----------|-------------------------------------------------------------------------------------------------|
@@ -84,6 +107,8 @@ Cette table contient les messages MMS.
 ### 4. **Table `part` (pour MMS)**
 Cette table stocke les différentes parties d'un message MMS, comme les images, le texte, etc.
 
+- **URI d'accès :** `content://mms/part/`
+
 | Colonne              | Type     | Description                                                                                     |
 |----------------------|----------|-------------------------------------------------------------------------------------------------|
 | `_id`                | INTEGER  | Identifiant unique pour chaque partie.                                                          |
@@ -94,62 +119,103 @@ Cette table stocke les différentes parties d'un message MMS, comme les images, 
 | `chset`              | INTEGER  | Jeu de caractères utilisé si c'est du texte.                                                    |
 | `cd`                 | TEXT     | Disposition de la partie (par exemple, `attachment`, `inline`).                                 |
 | `fn`                 | TEXT     | Nom de fichier original.                                                                        |
-| `cid`                | TEXT     | Content-ID (pour les images inline par exemple).                                                |
-| `cl`                 | TEXT     | Content-Location.                                                                               |
-| `ctt_s`              | TEXT     | Type de transfert de contenu (peut indiquer si c'est un texte ou autre).                        |
-| `text`               | TEXT     | Texte de la partie (pour les parties texte).                                                    |
-| `data`               | BLOB     | Données binaires (image, vidéo, son, etc.).                                                     |
+| `
 
-### 5. **Table `addr` (pour MMS)**
-Cette table contient les adresses associées à chaque MMS, comme les destinataires ou l'expéditeur.
+data`               | BLOB     | Données de la partie (contenu réel pour les images, fichiers, etc.).                            |
+| `text`               | TEXT     | Texte associé à la partie si c'est du texte.                                                    |
+| `size`               | INTEGER  | Taille de la partie en octets.                                                                  |
 
-| Colonne           | Type     | Description                                                                                     |
-|-------------------|----------|-------------------------------------------------------------------------------------------------|
-| `_id`             | INTEGER  | Identifiant unique pour chaque adresse.                                                         |
-| `msg_id`          | INTEGER  | Identifiant du message MMS auquel cette adresse est associée.                                   |
-| `contact_id`      | INTEGER  | Identifiant du contact dans le carnet d'adresses (souvent inutilisé).                           |
-| `address`         | TEXT     | Adresse du destinataire ou de l'expéditeur (généralement un numéro de téléphone).               |
-| `type`            | INTEGER  | Type de l'adresse (par exemple, 137 pour `to`, 151 pour `cc`, 130 pour `from`, 129 pour `bcc`). |
-| `charset`         | INTEGER  | Jeu de caractères utilisé pour l'adresse (peut être nul).                                       |
 
-### 6. **Table `canonical_addresses`**
-Cette table est utilisée pour stocker des adresses uniques (numéros de téléphone ou adresses e-mail) et réduire les redondances.
+### 5. **Table `cbs`**
+Cette table stocke les messages CBS (Cell Broadcast Service), souvent utilisés pour diffuser des messages d'information ou d'urgence à tous les téléphones dans une zone spécifique.
 
-| Colonne           | Type     | Description                                                                                     |
-|-------------------|----------|-------------------------------------------------------------------------------------------------|
-| `_id`             | INTEGER  | Identifiant unique pour chaque adresse canonique.                                               |
-| `address`         | TEXT     | Adresse unique (numéro de téléphone ou adresse e-mail).                                          |
+- **URI d'accès :** `content://cbs/`
 
-### 7. **Table `sr_pending`**
-Cette table est utilisée pour gérer les rapports d'état des messages (statut de livraison des MMS, par exemple).
+| Colonne               | Type     | Description                                                                                     |
+|-----------------------|----------|-------------------------------------------------------------------------------------------------|
+| `_id`                 | INTEGER  | Identifiant unique pour chaque message CBS.                                                     |
+| `message_id`          | INTEGER  | Identifiant du message.                                                                        |
+| `broadcast_id`        | INTEGER  | Identifiant de la diffusion.                                                                    |
+| `plmn`                | TEXT     | Code PLMN (Public Land Mobile Network) de l'opérateur de diffusion.                            |
+| `language`            | TEXT     | Langue du message.                                                                            |
+| `body`                | TEXT     | Contenu du message CBS.                                                                        |
+| `date`                | INTEGER  | Horodatage de la réception du message (en millisecondes depuis epoch).                         |
+| `received_time`       | INTEGER  | Horodatage spécifique à la réception du message.                                                |
 
-| Colonne           | Type     | Description                                                                                     |
-|-------------------|----------|-------------------------------------------------------------------------------------------------|
-| `_id`             | INTEGER  | Identifiant unique pour chaque entrée de rapport d'état.                                        |
-| `proto_type`      | INTEGER  | Type de protocole (souvent 1 pour MMS).                                                         |
-| `msg_id`          | INTEGER  | Identifiant du message associé à ce rapport d'état.                                             |
-| `error_code`      | INTEGER  | Code d'erreur associé au rapport d'état.                                                        |
-| `date`            | INTEGER  | Date associée au rapport d'état.                                                                |
+### 6. **Table `detailed_sms`**
+Cette table contient des informations détaillées sur les SMS, souvent utilisées pour des analyses ou des fonctions spécifiques des applications.
 
-### 8. **Table `draft`**
-Cette table peut être utilisée pour stocker des messages brouillons, bien que son utilisation soit rare comparée aux autres tables.
+- **URI d'accès :** `content://sms/detailed/`
 
-| Colonne           | Type     | Description                                                                                     |
-|-------------------|----------|-------------------------------------------------------------------------------------------------|
-| `_id`             | INTEGER  | Identifiant unique pour chaque brouillon.                                                       |
-| `thread_id`       | INTEGER  | Identifiant du fil de discussion auquel ce brouillon appartient.                                |
-| `message_body`    | TEXT     | Contenu du message de brouillon.                                                                |
-| `date`            | INTEGER  | Horodatage de la création du brouillon.                                                         |
+| Colonne               | Type     | Description                                                                                     |
+|-----------------------|----------|-------------------------------------------------------------------------------------------------|
+| `_id`                 | INTEGER  | Identifiant unique pour chaque SMS détaillé.                                                    |
+| `thread_id`           | INTEGER  | Identifiant du fil de discussion auquel ce message appartient.                                  |
+| `address`             | TEXT     | Numéro de téléphone de l'expéditeur ou du destinataire.                                         |
+| `person`              | INTEGER  | Identifiant de la personne (contact) associée à ce numéro.                                      |
+| `date`                | INTEGER  | Horodatage de l'envoi/réception du message (en millisecondes depuis epoch).                     |
+| `body`                | TEXT     | Contenu du message texte.                                                                       |
+| `status`              | INTEGER  | Statut du message (0 = aucun, 64 = envoi en cours, 128 = envoyé, 32 = en échec).                |
+| `protocol`            | INTEGER  | Protocole de message (0 = SMS, 1 = MMS).                                                        |
+| `error_code`          | INTEGER  | Code d'erreur en cas d'échec d'envoi.                                                           |
 
-### 9. **Table `attachments`**
-Cette table peut référencer les pièces jointes des messages, notamment pour les MMS.
+### 7. **Table `sms_inbox`**
+Cette table contient uniquement les messages SMS entrants, souvent utilisés pour les fonctions de filtrage ou d'analyse des messages entrants.
 
-| Colonne           | Type     | Description                                                                                     |
-|-------------------|----------|-------------------------------------------------------------------------------------------------|
-| `_id`             | INTEGER  | Identifiant unique pour chaque pièce jointe.                                                    |
-| `msg_id`          | INTEGER  | Identifiant du message auquel la pièce jointe est associée.                                     |
-| `content_type`    | TEXT     | Type MIME de la pièce jointe (par exemple, `image/jpeg`, `audio/mpeg`, etc.).                   |
-| `filename`        | TEXT     | Nom du fichier de la pièce jointe.                                                              |
-| `data`            | BLOB     | Données binaires de la pièce jointe.                                                            |
+- **URI d'accès :** `content://sms/inbox/`
 
-Ces tables constituent une partie essentielle de la base de données de messages sur un appareil Android, permettant de stocker, organiser et gérer les SMS et MMS de manière structurée. Ces informations sont principalement accessibles aux applications système ou avec des privilèges root en raison des restrictions de sécurité d'Android.`
+| Colonne               | Type     | Description                                                                                     |
+|-----------------------|----------|-------------------------------------------------------------------------------------------------|
+| `_id`                 | INTEGER  | Identifiant unique pour chaque message SMS entrant.                                             |
+| `thread_id`           | INTEGER  | Identifiant du fil de discussion auquel ce message appartient.                                  |
+| `address`             | TEXT     | Numéro de téléphone de l'expéditeur.                                                            |
+| `person`              | INTEGER  | Identifiant de la personne (contact) associée à ce numéro.                                      |
+| `date`                | INTEGER  | Horodatage de la réception du message (en millisecondes depuis epoch).                         |
+| `body`                | TEXT     | Contenu du message texte.                                                                       |
+| `status`              | INTEGER  | Statut du message (0 = aucun, 64 = envoi en cours, 128 = envoyé, 32 = en échec).                |
+| `read`                | INTEGER  | Statut de lecture (1 = lu, 0 = non lu).                                                         |
+
+### 8. **Table `sms_sent`**
+Cette table contient uniquement les messages SMS envoyés, souvent utilisés pour les fonctions de gestion des messages sortants.
+
+- **URI d'accès :** `content://sms/sent/`
+
+| Colonne               | Type     | Description                                                                                     |
+|-----------------------|----------|-------------------------------------------------------------------------------------------------|
+| `_id`                 | INTEGER  | Identifiant unique pour chaque message SMS envoyé.                                             |
+| `thread_id`           | INTEGER  | Identifiant du fil de discussion auquel ce message appartient.                                  |
+| `address`             | TEXT     | Numéro de téléphone du destinataire.                                                            |
+| `date`                | INTEGER  | Horodatage de l'envoi du message (en millisecondes depuis epoch).                              |
+| `body`                | TEXT     | Contenu du message texte.                                                                       |
+| `status`              | INTEGER  | Statut du message (0 = aucun, 64 = envoi en cours, 128 = envoyé, 32 = en échec).                |
+| `read`                | INTEGER  | Statut de lecture (1 = lu, 0 = non lu).                                                         |
+
+### 9. **Table `mms_part`**
+Cette table est une extension de `mms`, contenant des informations spécifiques sur les parties individuelles des messages MMS.
+
+- **URI d'accès :** `content://mms/part/`
+
+| Colonne              | Type     | Description                                                                                     |
+|----------------------|----------|-------------------------------------------------------------------------------------------------|
+| `_id`                | INTEGER  | Identifiant unique pour chaque partie de MMS.                                                   |
+| `mid`                | INTEGER  | Identifiant du message MMS auquel cette partie appartient.                                      |
+| `seq`                | INTEGER  | Numéro de séquence de la partie.                                                                |
+| `ct`                 | TEXT     | Type MIME de la partie (par exemple, `image/jpeg`, `text/plain`, etc.).                         |
+| `name`               | TEXT     | Nom du fichier si c'est une pièce jointe.                                                       |
+| `chset`              | INTEGER  | Jeu de caractères utilisé si c'est du texte.                                                    |
+| `data`               | BLOB     | Données de la partie (contenu réel pour les images, fichiers, etc.).                            |
+
+### 10. **Table `mms_sms`**
+Cette table contient les messages MMS qui ont été convertis en SMS pour être stockés dans le format SMS.
+
+- **URI d'accès :** `content://mms/sms/`
+
+| Colonne               | Type     | Description                                                                                     |
+|-----------------------|----------|-------------------------------------------------------------------------------------------------|
+| `_id`                 | INTEGER  | Identifiant unique pour chaque message MMS converti en SMS.                                      |
+| `thread_id`           | INTEGER  | Identifiant du fil de discussion auquel ce message appartient.                                  |
+| `address`             | TEXT     | Numéro de téléphone du destinataire.                                                            |
+| `date`                | INTEGER  | Horodatage de la conversion du message (en millisecondes depuis epoch).                         |
+| `body`                | TEXT     | Contenu du message texte.                                                                       |
+
+---
