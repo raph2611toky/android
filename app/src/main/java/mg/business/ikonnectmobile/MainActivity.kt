@@ -3,111 +3,76 @@ package mg.business.ikonnectmobile
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.fragment.app.commit
-import androidx.fragment.app.replace
 import android.content.Intent
 import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
-
-import mg.business.ikonnectmobile.ui.message.MessageFragment
-import mg.business.ikonnectmobile.ui.theme.IkonnectmobileTheme
+import androidx.compose.ui.Modifier
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.commit
+import mg.business.ikonnectmobile.ui.discussion.DiscussionListFragment
 
 class MainActivity : FragmentActivity() {
 
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            loadMessageFragment()
-        } else {
-            handlePermissionDenied()
+    private val permissionMap = mapOf(
+        Manifest.permission.READ_EXTERNAL_STORAGE to "L'accès au stockage est nécessaire pour afficher les messages.",
+        Manifest.permission.READ_SMS to "L'accès aux SMS est nécessaire pour lire vos messages.",
+        Manifest.permission.RECEIVE_SMS to "L'accès pour recevoir des SMS est nécessaire pour vous notifier des nouveaux messages.",
+        Manifest.permission.RECEIVE_MMS to "L'accès pour recevoir des MMS est nécessaire pour vous notifier des nouveaux messages."
+    )
+
+    private val permissionLaunchers = permissionMap.keys.associateWith { permission ->
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                loadDiscussionListFragment()
+            } else {
+                handlePermissionDenied(permission)
+            }
         }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContent {
-            IkonnectmobileTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    checkPermissionsAndLoadFragment()
+        setContentView(R.layout.activity_main)
+
+        checkPermissionsAndLoadFragment()
+    }
+
+    private fun checkPermissionsAndLoadFragment() {
+        permissionMap.keys.forEach { permission ->
+            when {
+                ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
+                    loadDiscussionListFragment()
+                }
+                shouldShowRequestPermissionRationale(permission) -> {
+                    showPermissionExplanation(permission)
+                }
+                else -> {
+                    permissionLaunchers[permission]?.launch(permission)
                 }
             }
         }
     }
 
-    private fun checkPermissionsAndLoadFragment() {
-        when {
-            ContextCompat.checkSelfPermission(
-                this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.READ_SMS
-                    ) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.RECEIVE_SMS
-                    ) == PackageManager.PERMISSION_GRANTED &&
-                    ContextCompat.checkSelfPermission(
-                        this,
-                        Manifest.permission.RECEIVE_MMS
-                    ) == PackageManager.PERMISSION_GRANTED -> {
-                loadMessageFragment()
-            }
-            shouldShowRequestPermissionRationale(Manifest.permission.READ_EXTERNAL_STORAGE) ||
-                    shouldShowRequestPermissionRationale(Manifest.permission.READ_SMS) ||
-                    shouldShowRequestPermissionRationale(Manifest.permission.RECEIVE_SMS) ||
-                    shouldShowRequestPermissionRationale(Manifest.permission.RECEIVE_MMS) -> {
-                showPermissionExplanation()
-            }
-            else -> {
-                // Demander les permissions nécessaires
-                requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
-                requestPermissionLauncher.launch(Manifest.permission.READ_SMS)
-                requestPermissionLauncher.launch(Manifest.permission.RECEIVE_SMS)
-                requestPermissionLauncher.launch(Manifest.permission.RECEIVE_MMS)
-            }
-        }
-    }
+    private fun handlePermissionDenied(permission: String) {
+        val rationale = permissionMap[permission] ?: "Cette permission est nécessaire pour le bon fonctionnement de l'application."
 
-
-    fun loadMessageFragment() {
-        supportFragmentManager.commit {
-            setReorderingAllowed(true)
-            replace<MessageFragment>(android.R.id.content)
-        }
-    }
-
-    private fun handlePermissionDenied() {
-        // Afficher un Toast pour informer l'utilisateur que la permission a été refusée
         Toast.makeText(
             this,
-            "Permission refusée. L'accès au stockage est nécessaire pour afficher les messages.",
+            "Permission refusée. $rationale",
             Toast.LENGTH_LONG
         ).show()
 
-        // Ou, utiliser un Dialog pour informer l'utilisateur et fournir des options supplémentaires
         AlertDialog.Builder(this)
             .setTitle("Permission requise")
-            .setMessage("L'application nécessite l'accès au stockage pour fonctionner correctement. Veuillez accorder la permission dans les paramètres.")
-            .setPositiveButton("Aller aux paramètres") { _, _ ->
-                // Ouvrir les paramètres de l'application pour permettre à l'utilisateur de changer la permission
+            .setMessage(rationale + " Veuillez accorder la permission dans les paramètres.")
+            .setPositiveButton("Paramètres") { _, _ ->
                 val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                val uri = Uri.fromParts("package", packageName, null)
+                val uri: Uri = Uri.fromParts("package", packageName, null)
                 intent.data = uri
                 startActivity(intent)
             }
@@ -115,16 +80,27 @@ class MainActivity : FragmentActivity() {
             .show()
     }
 
+    private fun showPermissionExplanation(permission: String) {
+        val rationale = permissionMap[permission] ?: "Cette permission est nécessaire pour le bon fonctionnement de l'application."
 
-    private fun showPermissionExplanation() {
         AlertDialog.Builder(this)
             .setTitle("Pourquoi cette permission est nécessaire ?")
-            .setMessage("Cette application a besoin de lire le stockage externe pour accéder aux messages stockés. Veuillez accorder cette permission pour continuer.")
+            .setMessage(rationale)
             .setPositiveButton("Demander la permission") { _, _ ->
-                requestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                permissionLaunchers[permission]?.launch(permission)
             }
             .setNegativeButton("Annuler", null)
             .show()
     }
 
+    private fun loadDiscussionListFragment() {
+        loadFragment(DiscussionListFragment())
+    }
+
+    private fun loadFragment(fragment: Fragment) {
+        supportFragmentManager.commit {
+            setReorderingAllowed(true)
+            replace(R.id.container, fragment)
+        }
+    }
 }

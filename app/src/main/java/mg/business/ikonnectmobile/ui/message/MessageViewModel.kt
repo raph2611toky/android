@@ -1,3 +1,4 @@
+// MessageViewModel.kt
 package mg.business.ikonnectmobile.ui.message
 
 import android.app.Application
@@ -27,19 +28,17 @@ class MessageViewModel(application: Application) : AndroidViewModel(application)
 
         val messagesList = mutableListOf<Message>()
 
-        cursor?.let {
+        cursor?.use {
             val idIndex = it.getColumnIndex("_id")
             val bodyIndex = it.getColumnIndex("body")
             val dateIndex = it.getColumnIndex("date")
 
             while (it.moveToNext()) {
-                val id = it.getString(idIndex)
+                val id = it.getLong(idIndex)
                 val body = it.getString(bodyIndex)
                 val date = it.getLong(dateIndex)
-                val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date(date))
-                messagesList.add(Message(id, "SMS", body, timestamp))
+                messagesList.add(Message(id.toString(), 0, "", body, date, 0, false, 0, 0, false))
             }
-            it.close()
         }
 
         _messages.value = messagesList

@@ -33,12 +33,22 @@ class MessageFragment : Fragment() {
                     for (pdu in pdus) {
                         val smsMessage = android.telephony.SmsMessage.createFromPdu(pdu as ByteArray)
                         val messageBody = smsMessage.messageBody
-                        val timestamp = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
-                        val newMessage = Message(UUID.randomUUID().toString(), "SMS", messageBody, timestamp)
+                        val timestamp = System.currentTimeMillis()
+                        val newMessage = Message(
+                            id = UUID.randomUUID().toString(),
+                            threadId = 0,
+                            senderAddress = smsMessage.displayOriginatingAddress ?: "",
+                            body = messageBody,
+                            date = timestamp,
+                            dateSent = timestamp,
+                            isRead = false,
+                            status = 0,
+                            type = 1,
+                            isSeen = false
+                        )
                         messageViewModel.addMessage(newMessage)
 
-                        // Display a Toast with the message
-                        Toast.makeText(context, "Message received: $messageBody", Toast.LENGTH_LONG).show()
+                        Toast.makeText(context, "Message reçu: $messageBody", Toast.LENGTH_LONG).show()
                     }
                 }
             }

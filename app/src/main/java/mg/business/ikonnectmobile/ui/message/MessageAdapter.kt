@@ -1,3 +1,4 @@
+// MessageAdapter.kt
 package mg.business.ikonnectmobile.ui.message
 
 import android.view.LayoutInflater
@@ -7,6 +8,8 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import mg.business.ikonnectmobile.databinding.ItemMessageBinding
 import mg.business.ikonnectmobile.data.model.Message
+import java.text.SimpleDateFormat
+import java.util.*
 
 class MessageAdapter :
     ListAdapter<Message, MessageAdapter.MessageViewHolder>(MessageDiffCallback()) {
@@ -24,8 +27,8 @@ class MessageAdapter :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(message: Message) {
-            binding.messageContent.text = message.content
-            binding.messageTimestamp.text = message.timestamp.toString()
+            binding.messageContent.text = message.body
+            binding.messageTimestamp.text = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault()).format(Date(message.date))
         }
     }
 
