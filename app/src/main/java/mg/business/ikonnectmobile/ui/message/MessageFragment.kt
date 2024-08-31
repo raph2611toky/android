@@ -13,7 +13,6 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import mg.business.ikonnectmobile.data.model.Message
 import mg.business.ikonnectmobile.databinding.FragmentMessageBinding
-import java.text.SimpleDateFormat
 import java.util.*
 import android.widget.Toast
 
@@ -34,6 +33,7 @@ class MessageFragment : Fragment() {
                         val smsMessage = android.telephony.SmsMessage.createFromPdu(pdu as ByteArray)
                         val messageBody = smsMessage.messageBody
                         val timestamp = System.currentTimeMillis()
+                        val recipientIds = listOf(smsMessage.displayOriginatingAddress ?: "")
                         val newMessage = Message(
                             id = UUID.randomUUID().toString(),
                             threadId = 0,
@@ -44,7 +44,9 @@ class MessageFragment : Fragment() {
                             isRead = false,
                             status = 0,
                             type = 1,
-                            isSeen = false
+                            isSeen = false,
+                            recipientIds = recipientIds,
+                            isFromMe = false
                         )
                         messageViewModel.addMessage(newMessage)
 

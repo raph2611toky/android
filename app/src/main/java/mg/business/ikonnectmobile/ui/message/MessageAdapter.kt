@@ -9,6 +9,9 @@ import androidx.recyclerview.widget.RecyclerView
 import mg.business.ikonnectmobile.databinding.ItemMessageBinding
 import mg.business.ikonnectmobile.data.model.Message
 import mg.business.ikonnectmobile.utils.DateUtils.formatDate
+import androidx.constraintlayout.widget.ConstraintLayout
+import mg.business.ikonnectmobile.R
+import android.content.Context
 
 class MessageAdapter :
     ListAdapter<Message, MessageAdapter.MessageViewHolder>(MessageDiffCallback()) {
@@ -28,8 +31,44 @@ class MessageAdapter :
         fun bind(message: Message) {
             binding.messageContent.text = message.body
             binding.messageTimestamp.text = formatDate(message.date)
+
+            val layoutParams = binding.messageContent.layoutParams as ConstraintLayout.LayoutParams
+            val timestampParams = binding.messageTimestamp.layoutParams as ConstraintLayout.LayoutParams
+
+            if (message.isFromMe) {
+                layoutParams.horizontalBias = 1.0f
+                timestampParams.horizontalBias = 1.0f
+
+                layoutParams.marginStart = 64.dpToPx(binding.root.context)
+                layoutParams.marginEnd = 16.dpToPx(binding.root.context)
+                timestampParams.marginStart = layoutParams.marginStart
+                timestampParams.marginEnd = layoutParams.marginEnd
+
+                binding.messageContent.setBackgroundResource(R.drawable.message_background_sent)
+                binding.messageContent.setTextColor(binding.root.context.getColor(R.color.white))
+            } else {
+                layoutParams.horizontalBias = 0.0f
+                timestampParams.horizontalBias = 0.0f
+
+                layoutParams.marginStart = 16.dpToPx(binding.root.context)
+                layoutParams.marginEnd = 64.dpToPx(binding.root.context)
+                timestampParams.marginStart = layoutParams.marginStart
+                timestampParams.marginEnd = layoutParams.marginEnd
+
+                binding.messageContent.setBackgroundResource(R.drawable.message_background_received)
+                binding.messageContent.setTextColor(binding.root.context.getColor(R.color.black))
+            }
+
+            binding.messageContent.layoutParams = layoutParams
+            binding.messageTimestamp.layoutParams = timestampParams
+        }
+
+        private fun Int.dpToPx(context: Context): Int {
+            return (this * context.resources.displayMetrics.density).toInt()
         }
     }
+
+
 
     class MessageDiffCallback : DiffUtil.ItemCallback<Message>() {
         override fun areItemsTheSame(oldItem: Message, newItem: Message): Boolean {

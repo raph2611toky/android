@@ -27,6 +27,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
         loadDiscussions()
     }
 
+
     private fun loadDiscussions() {
         viewModelScope.launch(Dispatchers.IO) {
             val contentResolver: ContentResolver = getApplication<Application>().contentResolver
@@ -43,6 +44,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
             }
 
             val discussionsList = mutableListOf<Discussion>()
+            Log.d("Load discussion : ", "Load discussions ...")
 
             cursor?.use {
                 while (it.moveToNext()) {
@@ -52,6 +54,19 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
             }
             discussionsList.sortByDescending { it.lastMessage?.date }
             _discussions.postValue(discussionsList)
+        }
+    }
+
+    private fun logColumnFromUri(uri:Uri){
+        val contentResolver: ContentResolver = getApplication<Application>().contentResolver
+        try {
+            val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
+            cursor?.let {
+                logAvailableColumns(it, uri.toString())
+                it.close()
+            }
+        } catch (e: Exception) {
+            Log.e("DatabaseHelper", "Error querying $uri: ${e.message}")
         }
     }
 
@@ -65,9 +80,8 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
         Log.i("Table Info: les colonnes ", "Columns: $columnNamesString")
     }
 
-
     private fun mapCursorToDiscussion(cursor: Cursor): Discussion {
-        logAvailableColumns(cursor, "discussion")
+
         val threadId = cursor.safeGetInt("thread_id")
         val snippet = cursor.safeGetString("snippet") ?: ""
         val messageCount = cursor.safeGetInt("msg_count")
@@ -83,7 +97,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
             threadId = threadId,
             date = lastMessage?.date ?: 0L,
             messageCount = messageCount,
-            recipientIds = lastMessage?.senderAddress?.split(" "),
+            recipientIds = lastMessage?.senderAddress?.split(","),
             snippet = snippet,
             isRead = lastMessage?.isRead ?: false,
             type = lastMessage?.type ?: 0,
@@ -130,6 +144,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
         val body = cursor.safeGetString("body")
         val date = cursor.safeGetLong("date")
         val dateSent = cursor.safeGetLong("date_sent")
+        val isFromMe = cursor.safeGetString("type") == "2"
 
         return Message(
             id = id.toString(),
@@ -141,26 +156,23 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
             isRead = cursor.safeGetInt("read") == 1,
             type = cursor.safeGetInt("type"),
             dateSent = dateSent,
-            isSeen = cursor.safeGetInt("seen") == 1
+            isSeen = cursor.safeGetInt("seen") == 1,
+            recipientIds = cursor.safeGetString("recipientIds")?.split(","),
+            isFromMe = isFromMe
         )
     }
 
 
 
     fun getDiscussion(discussionId: String): LiveData<Discussion?> {
-        Log.d("discussion id: ",discussionId)
         val liveData = MediatorLiveData<Discussion?>()
         val observer = Observer<List<Discussion>> { discussions ->
             val selectedDiscussion = discussions.find { it.threadId.toString() == discussionId }
             liveData.value = selectedDiscussion
-            Log.d("selected discussion : ",selectedDiscussion.toString())
         }
         liveData.addSource(discussions, observer)
         return liveData
     }
-
-
-
 
     fun getMessages(discussionId: String): LiveData<List<Message>> {
         val contentResolver: ContentResolver = getApplication<Application>().contentResolver
@@ -176,6 +188,8 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
                 val id = cursor.safeGetString("_id")
                 val body = cursor.safeGetString("body")
                 val date = cursor.safeGetLong("date")
+                val recipientIdsString = cursor.safeGetString("recipientIds")
+                val isFromMe = cursor.safeGetString("type") == "2"
 
                 messagesList.add(
                     Message(
@@ -188,7 +202,9 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
                         isRead = cursor.safeGetInt("read") == 1,
                         type = cursor.safeGetInt("type"),
                         dateSent = cursor.safeGetLong("date_sent"),
-                        isSeen = cursor.safeGetInt("seen") == 1
+                        isSeen = cursor.safeGetInt("seen") == 1,
+                        recipientIds = recipientIdsString?.split(","),
+                        isFromMe = isFromMe
                     )
                 )
             }
