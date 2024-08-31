@@ -9,5 +9,6 @@ data class Discussion(
     val isRead: Boolean,
     val type: Int,
     val error: Int,
-    var messages: List<Message> = emptyList()
+    var messages: List<Message> = emptyList(),
+    var lastMessage: Message? = null
 )

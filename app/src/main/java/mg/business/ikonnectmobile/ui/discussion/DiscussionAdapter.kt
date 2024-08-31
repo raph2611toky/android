@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import mg.business.ikonnectmobile.data.model.Discussion
 import mg.business.ikonnectmobile.databinding.ItemDiscussionBinding
+import mg.business.ikonnectmobile.utils.DateUtils.formatDiscussionDate
 
 class DiscussionAdapter(private val onClick: (Discussion) -> Unit) :
     ListAdapter<Discussion, DiscussionAdapter.DiscussionViewHolder>(DiscussionDiffCallback()) {
@@ -26,7 +27,7 @@ class DiscussionAdapter(private val onClick: (Discussion) -> Unit) :
         fun bind(discussion: Discussion, onClick: (Discussion) -> Unit) {
             binding.discussionBody.text = discussion.snippet
             binding.discussionSource.text = discussion.recipientIds?.joinToString(", ")
-            binding.discussionTimeElapsed.text = discussion.date.toString()  // Format the date as needed
+            binding.discussionTimeElapsed.text = formatDiscussionDate(discussion.date)
             binding.root.setOnClickListener { onClick(discussion) }
         }
     }

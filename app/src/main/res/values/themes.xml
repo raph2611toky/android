@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Base application theme -->
+    <style name="Theme.Ikonnectmobile" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- Primary brand color -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryVariant">@color/purple_700</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/teal_200</item>
+        <item name="colorOnSecondary">@color/black</item>
 
-    <style name="Theme.Ikonnectmobile" parent="android:Theme.Material.Light.NoActionBar" />
+        <!-- Background and other attributes -->
+        <item name="selectableItemBackground">@drawable/selectable_item_background</item>
+        <item name="selectableItemBackgroundBorderless">@drawable/selectable_item_background_borderless</item>
+    </style>
 </resources>

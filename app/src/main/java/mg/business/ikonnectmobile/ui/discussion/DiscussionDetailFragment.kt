@@ -51,15 +51,19 @@ class DiscussionDetailFragment : Fragment() {
         }
 
         val adapter = MessageAdapter()
+        val layoutManager = LinearLayoutManager(requireContext())
+        layoutManager.stackFromEnd = true
+        binding.messagesList.layoutManager = layoutManager
         binding.messagesList.adapter = adapter
-        binding.messagesList.layoutManager = LinearLayoutManager(requireContext())
 
         discussionViewModel.getMessages(discussionId).observe(viewLifecycleOwner) { messages ->
-            adapter.submitList(messages)
+            adapter.submitList(messages) {
+                binding.messagesList.scrollToPosition(adapter.itemCount - 1)
+            }
         }
 
         discussionViewModel.getDiscussion(discussionId).observe(viewLifecycleOwner) { discussion ->
-            binding.discussionHeader.text = discussion?.snippet  // Utilisez l'aperçu de la discussion
+            binding.discussionHeader.text = discussion?.recipientIds?.joinToString(", ") ?: "Pas de destinataires"
         }
     }
 

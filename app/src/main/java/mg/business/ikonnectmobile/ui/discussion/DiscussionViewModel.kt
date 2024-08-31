@@ -9,11 +9,14 @@ import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import mg.business.ikonnectmobile.data.model.Discussion
 import mg.business.ikonnectmobile.data.model.Message
+import androidx.lifecycle.MediatorLiveData
+
 
 class DiscussionViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -47,7 +50,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
                     discussionsList.add(discussion)
                 }
             }
-
+            discussionsList.sortByDescending { it.lastMessage?.date }
             _discussions.postValue(discussionsList)
         }
     }
@@ -85,7 +88,8 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
             isRead = lastMessage?.isRead ?: false,
             type = lastMessage?.type ?: 0,
             error = error,
-            messages = messages
+            messages = messages,
+            lastMessage = lastMessage
         )
     }
 
@@ -122,10 +126,10 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun mapCursorToMessage(cursor: Cursor): Message {
-        logAvailableColumns(cursor, "message")
         val id = cursor.safeGetString("_id")
         val body = cursor.safeGetString("body")
         val date = cursor.safeGetLong("date")
+        val dateSent = cursor.safeGetLong("date_sent")
 
         return Message(
             id = id.toString(),
@@ -136,7 +140,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
             status = cursor.safeGetInt("status"),
             isRead = cursor.safeGetInt("read") == 1,
             type = cursor.safeGetInt("type"),
-            dateSent = cursor.safeGetLong("date_sent"),
+            dateSent = dateSent,
             isSeen = cursor.safeGetInt("seen") == 1
         )
     }
@@ -144,11 +148,19 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
 
 
     fun getDiscussion(discussionId: String): LiveData<Discussion?> {
-        val selectedDiscussion = _discussions.value?.find { it.threadId.toString() == discussionId }
-        val liveData = MutableLiveData<Discussion?>()
-        liveData.value = selectedDiscussion
+        Log.d("discussion id: ",discussionId)
+        val liveData = MediatorLiveData<Discussion?>()
+        val observer = Observer<List<Discussion>> { discussions ->
+            val selectedDiscussion = discussions.find { it.threadId.toString() == discussionId }
+            liveData.value = selectedDiscussion
+            Log.d("selected discussion : ",selectedDiscussion.toString())
+        }
+        liveData.addSource(discussions, observer)
         return liveData
     }
+
+
+
 
     fun getMessages(discussionId: String): LiveData<List<Message>> {
         val contentResolver: ContentResolver = getApplication<Application>().contentResolver
@@ -159,27 +171,24 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
 
         val messagesList = mutableListOf<Message>()
         cursor?.use {
-            val idIndex = it.getColumnIndex("_id")
-            val bodyIndex = it.getColumnIndex("body")
-            val dateIndex = it.getColumnIndex("date")
 
             while (it.moveToNext()) {
-                val id = if (idIndex >= 0) it.getString(idIndex) else ""
-                val body = if (bodyIndex >= 0) it.getString(bodyIndex) else ""
-                val date = if (dateIndex >= 0) it.getLong(dateIndex) else 0L
+                val id = cursor.safeGetString("_id")
+                val body = cursor.safeGetString("body")
+                val date = cursor.safeGetLong("date")
 
                 messagesList.add(
                     Message(
-                        id = id,
-                        threadId = discussionId.toInt(),
-                        senderAddress = "",
-                        body = body,
+                        id = id.toString(),
+                        threadId = cursor.safeGetInt("thread_id"),
+                        senderAddress = cursor.safeGetString("address").toString(),
+                        body = body.toString(),
                         date = date,
-                        status = 0,
-                        isRead = false,
-                        type = 0,
-                        dateSent = 2131232,
-                        isSeen = false
+                        status = cursor.safeGetInt("status"),
+                        isRead = cursor.safeGetInt("read") == 1,
+                        type = cursor.safeGetInt("type"),
+                        dateSent = cursor.safeGetLong("date_sent"),
+                        isSeen = cursor.safeGetInt("seen") == 1
                     )
                 )
             }
