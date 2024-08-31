@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">ikonnectmobile</string>
     <string name="back_button_description">Retour</string>
+    <string name="discussion_icon_description">Avatar</string>
 </resources>

@@ -9,8 +9,24 @@
         <item name="colorSecondary">@color/teal_200</item>
         <item name="colorOnSecondary">@color/black</item>
 
+        <!-- Toolbar background and elevation -->
+        <item name="android:toolbarStyle">@style/Theme.Ikonnectmobile.Toolbar</item>
+
         <!-- Background and other attributes -->
         <item name="selectableItemBackground">@drawable/selectable_item_background</item>
         <item name="selectableItemBackgroundBorderless">@drawable/selectable_item_background_borderless</item>
+    </style>
+
+    <!-- Toolbar Style integrated in Theme -->
+    <style name="Theme.Ikonnectmobile.Toolbar" parent="Widget.AppCompat.Toolbar">
+        <item name="android:background">?attr/colorPrimary</item>
+        <item name="android:titleTextAppearance">@style/Theme.Ikonnectmobile.Toolbar.TitleText</item>
+        <item name="android:elevation">4dp</item>
+    </style>
+
+    <style name="Theme.Ikonnectmobile.Toolbar.TitleText">
+        <item name="android:textColor">#FFFFFF</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
     </style>
 </resources>

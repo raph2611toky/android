@@ -4,16 +4,33 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="3dp"
-    android:background="@drawable/discussion_item_background">
+    android:padding="8dp"
+    android:background="@drawable/discussion_item_background"
+    android:layout_marginBottom="8dp">
+
+    <ImageView
+        android:id="@+id/discussionIcon"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/ic_default_avatar"
+        android:contentDescription="@string/discussion_icon_description"
+        android:background="@drawable/circle_background"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
     <TextView
         android:id="@+id/discussionSource"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
+        android:textColor="@color/primary_text"
         android:text="Source"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toEndOf="@id/discussionIcon"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/discussionBody" />
@@ -22,10 +39,10 @@
         android:id="@+id/discussionBody"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:textColor="@color/secondary_text"
         android:text="Body preview..."
         app:layout_constraintTop_toBottomOf="@id/discussionSource"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintStart_toStartOf="@id/discussionSource"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toTopOf="@id/discussionTimeElapsed" />
 
@@ -33,10 +50,9 @@
         android:id="@+id/discussionTimeElapsed"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
+        android:textColor="@color/time_text"
         android:text="Time"
         app:layout_constraintTop_toBottomOf="@id/discussionBody"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
