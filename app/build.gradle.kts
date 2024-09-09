@@ -80,6 +80,8 @@ dependencies {
     implementation("io.ktor:ktor-server-call-logging:2.3.12")
     implementation("io.ktor:ktor-server-request-validation:2.3.12")
     implementation("io.ktor:ktor-server-host-common:2.3.12")
+    implementation("io.ktor:ktor-server-auth:2.2.2")
+    implementation("io.ktor:ktor-server-auth-jwt:2.2.2")
 
 
     implementation("ch.qos.logback:logback-classic:1.2.11")

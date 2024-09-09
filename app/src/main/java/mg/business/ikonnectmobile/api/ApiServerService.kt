@@ -26,6 +26,12 @@ import mg.business.ikonnectmobile.data.DatabaseHelper
 import mg.business.ikonnectmobile.R
 import java.net.NetworkInterface
 import java.net.InetAddress
+import io.ktor.server.auth.*
+import mg.business.ikonnectmobile.utils.JwtConfig
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
+import io.ktor.server.response.respond
+import io.ktor.http.HttpStatusCode
 import android.util.Log
 import kotlinx.serialization.json.Json
 
@@ -168,6 +174,24 @@ class ApiServerService : Service() {
                     ignoreUnknownKeys = true
                 })
             }
+
+            install(Authentication) {
+                jwt("auth-jwt") {
+                    realm = "ktor-sample"
+                    verifier(JwtConfig.verifier)
+                    validate { credential ->
+                        if (credential.payload.getClaim("name").asString().isNotEmpty()) {
+                            JWTPrincipal(credential.payload)
+                        } else {
+                            null
+                        }
+                    }
+                    challenge { _, _ ->
+                        call.respond(HttpStatusCode.Unauthorized, "Token invalide ou expiré")
+                    }
+                }
+            }
+
             val dbConfig = DatabaseHelper.DbConfig("ikonnectarea.db", 1)
             val databaseHelper = DatabaseHelper(this@ApiServerService, dbConfig)
             routing {
@@ -178,4 +202,5 @@ class ApiServerService : Service() {
             Log.e("ApiServerService", "Erreur lors de la configuration des routes : ${e.message}")
         }
     }
+
 }
