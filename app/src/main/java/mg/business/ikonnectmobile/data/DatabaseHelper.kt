@@ -11,9 +11,7 @@ class DatabaseHelper(context: Context, dbConfig: DbConfig) : SQLiteOpenHelper(co
             CREATE TABLE $TABLE_USER (
                 $COLUMN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
                 $COLUMN_NOM TEXT,
-                $COLUMN_EMAIL TEXT,
                 $COLUMN_PASSWORD TEXT,
-                $COLUMN_CIN TEXT,
                 $COLUMN_CREATED_AT DATETIME DEFAULT CURRENT_TIMESTAMP,
                 $COLUMN_LAST_LOGIN DATETIME DEFAULT CURRENT_TIMESTAMP
             )
@@ -30,9 +28,7 @@ class DatabaseHelper(context: Context, dbConfig: DbConfig) : SQLiteOpenHelper(co
         const val TABLE_USER = "utilisateur"
         const val COLUMN_ID = "id"
         const val COLUMN_NOM = "nom"
-        const val COLUMN_EMAIL = "email"
         const val COLUMN_PASSWORD = "password"
-        const val COLUMN_CIN = "cin"
         const val COLUMN_CREATED_AT = "created_at"
         const val COLUMN_LAST_LOGIN = "last_login"
     }

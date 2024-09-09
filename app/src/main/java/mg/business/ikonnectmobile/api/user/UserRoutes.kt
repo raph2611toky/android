@@ -7,6 +7,7 @@ import io.ktor.server.routing.*
 import io.ktor.http.HttpStatusCode
 import mg.business.ikonnectmobile.data.DatabaseHelper
 import mg.business.ikonnectmobile.data.model.Utilisateur
+import mg.business.ikonnectmobile.data.model.LoginRequest
 import android.util.Log
 
 fun Route.UserRoutes(databaseHelper: DatabaseHelper) {
@@ -117,5 +118,24 @@ fun Route.UserRoutes(databaseHelper: DatabaseHelper) {
                 call.respond(HttpStatusCode.InternalServerError, "Une erreur est survenue lors de la suppression de l'utilisateur.")
             }
         }
+
+        post("/login") {
+            try {
+                Log.i("UserRoutes","POST /users/login")
+                val loginRequest = call.receive<LoginRequest>()
+                userDao.open()
+                val isValidUser = userDao.verifyLogin(loginRequest.nom, loginRequest.password)
+                userDao.close()
+                if (isValidUser) {
+                    call.respond(HttpStatusCode.OK, "Connexion réussie")
+                } else {
+                    call.respond(HttpStatusCode.Unauthorized, "Nom d'utilisateur ou mot de passe incorrect.")
+                }
+            } catch (e: Exception) {
+                Log.e("UserRoutes", "Erreur lors de la connexion de l'utilisateur: $e")
+                call.respond(HttpStatusCode.InternalServerError, "Une erreur est survenue lors de la connexion de l'utilisateur.")
+            }
+        }
+
     }
 }

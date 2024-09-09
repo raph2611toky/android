@@ -4,6 +4,7 @@ import mg.business.ikonnectmobile.data.DatabaseHelper
 import mg.business.ikonnectmobile.data.model.Utilisateur
 import android.content.ContentValues
 import android.database.sqlite.SQLiteDatabase
+import java.security.MessageDigest
 
 class UserDao(private val dbHelper: DatabaseHelper) {
     private var database: SQLiteDatabase? = null
@@ -16,12 +17,17 @@ class UserDao(private val dbHelper: DatabaseHelper) {
         database?.close()
     }
 
+    private fun hashPassword(password: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(password.toByteArray())
+        return hashBytes.joinToString("") { "%02x".format(it) }
+    }
+
     fun addUser(user: Utilisateur): Long {
+        val hashedPassword = hashPassword(user.password)
         val values = ContentValues().apply {
             put(DatabaseHelper.COLUMN_NOM, user.nom)
-            put(DatabaseHelper.COLUMN_EMAIL, user.email)
-            put(DatabaseHelper.COLUMN_PASSWORD, user.password)
-            put(DatabaseHelper.COLUMN_CIN, user.cin)
+            put(DatabaseHelper.COLUMN_PASSWORD, hashedPassword)
         }
         return database!!.insert(DatabaseHelper.TABLE_USER, null, values)
     }
@@ -33,18 +39,14 @@ class UserDao(private val dbHelper: DatabaseHelper) {
         return if (cursor.moveToFirst()) {
             val idIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_ID)
             val nomIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_NOM)
-            val emailIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_EMAIL)
             val passwordIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_PASSWORD)
-            val cinIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_CIN)
             val createdAtIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_CREATED_AT)
             val lastLoginIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_LAST_LOGIN)
 
             Utilisateur(
                 id = if (idIndex >= 0) cursor.getInt(idIndex) else null,
                 nom = if (nomIndex >= 0) cursor.getString(nomIndex) else "",
-                email = if (emailIndex >= 0) cursor.getString(emailIndex) else "",
                 password = if (passwordIndex >= 0) cursor.getString(passwordIndex) else "",
-                cin = if (cinIndex >= 0) cursor.getString(cinIndex) else "",
                 createdAt = if (createdAtIndex >= 0) cursor.getString(createdAtIndex) else null,
                 lastLogin = if (lastLoginIndex >= 0) cursor.getString(lastLoginIndex) else null
             ).also {
@@ -69,9 +71,7 @@ class UserDao(private val dbHelper: DatabaseHelper) {
         while (cursor.moveToNext()) {
             val idIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_ID)
             val nomIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_NOM)
-            val emailIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_EMAIL)
             val passwordIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_PASSWORD)
-            val cinIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_CIN)
             val createdAtIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_CREATED_AT)
             val lastLoginIndex = cursor.getColumnIndex(DatabaseHelper.COLUMN_LAST_LOGIN)
 
@@ -79,9 +79,7 @@ class UserDao(private val dbHelper: DatabaseHelper) {
                 Utilisateur(
                     id = if (idIndex >= 0) cursor.getInt(idIndex) else null,
                     nom = if (nomIndex >= 0) cursor.getString(nomIndex) else "",
-                    email = if (emailIndex >= 0) cursor.getString(emailIndex) else "",
                     password = if (passwordIndex >= 0) cursor.getString(passwordIndex) else "",
-                    cin = if (cinIndex >= 0) cursor.getString(cinIndex) else "",
                     createdAt = if (createdAtIndex >= 0) cursor.getString(createdAtIndex) else null,
                     lastLogin = if (lastLoginIndex >= 0) cursor.getString(lastLoginIndex) else null
                 )
@@ -93,14 +91,24 @@ class UserDao(private val dbHelper: DatabaseHelper) {
 
 
     fun updateUser(user: Utilisateur): Int {
+        val hashedPassword = hashPassword(user.password)
         val values = ContentValues().apply {
             put(DatabaseHelper.COLUMN_NOM, user.nom)
-            put(DatabaseHelper.COLUMN_EMAIL, user.email)
-            put(DatabaseHelper.COLUMN_PASSWORD, user.password)
-            put(DatabaseHelper.COLUMN_CIN, user.cin)
+            put(DatabaseHelper.COLUMN_PASSWORD, hashedPassword)
             put(DatabaseHelper.COLUMN_LAST_LOGIN, "CURRENT_TIMESTAMP")
         }
         return database!!.update(DatabaseHelper.TABLE_USER, values, "${DatabaseHelper.COLUMN_ID} = ?", arrayOf(user.id.toString()))
+    }
+
+    fun verifyLogin(nom: String, password: String): Boolean {
+        val hashedPassword = hashPassword(password)
+        val cursor = database!!.query(
+            DatabaseHelper.TABLE_USER, null, "${DatabaseHelper.COLUMN_NOM} = ? AND ${DatabaseHelper.COLUMN_PASSWORD} = ?",
+            arrayOf(nom, hashedPassword), null, null, null
+        )
+        return cursor.moveToFirst().also {
+            cursor.close()
+        }
     }
 
     fun deleteUser(id: Int): Int {
