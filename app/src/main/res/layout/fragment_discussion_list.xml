@@ -14,15 +14,11 @@
         android:layout_height="wrap_content"
         android:background="?attr/colorPrimary"
         android:theme="@style/Theme.Ikonnectmobile.Toolbar"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="8dp"
-        android:paddingBottom="8dp"
         app:layout_collapseMode="pin"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:title="Discussions" />
+        app:title="" />
 
 
     <androidx.recyclerview.widget.RecyclerView

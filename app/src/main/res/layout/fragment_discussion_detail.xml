@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".ui.discussion.DiscussionDetailFragment">
 
-    <!-- Container for back button and header -->
+    <!-- Container for back button, search bar, and header -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/headerContainer"
         android:layout_width="0dp"
@@ -18,6 +18,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <!-- Back Button -->
         <ImageButton
             android:id="@+id/backButton"
             android:layout_width="48dp"
@@ -31,18 +32,53 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
 
-        <TextView
-            android:id="@+id/discussionHeader"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"
-            android:textAppearance="?android:attr/textAppearanceLarge"
-            android:textColor="@android:color/white"
-            app:layout_constraintStart_toEndOf="@id/backButton"
+        <!-- Search Button -->
+        <ImageButton
+            android:id="@+id/searchButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_search"
+            android:contentDescription="Search"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="fitCenter"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent" />
+
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            app:layout_constraintStart_toEndOf="@id/backButton"
+            app:layout_constraintEnd_toStartOf="@id/searchButton"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <TextView
+                android:id="@+id/discussionHeader"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="Discussion"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:gravity="center_vertical"
+                android:layout_marginStart="16dp"
+            android:visibility="visible"/>
+
+            <!-- Search Input Field (Initially hidden) -->
+            <EditText
+                android:id="@+id/searchInput"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:hint="Rechercher des messages"
+                android:background="@drawable/search_input_background"
+                android:textColor="@android:color/white"
+                android:textColorHint="@android:color/darker_gray"
+                android:padding="8dp"
+                android:visibility="gone"/>
+        </FrameLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <!-- RecyclerView for messages -->
@@ -56,4 +92,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

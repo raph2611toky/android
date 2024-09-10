@@ -143,64 +143,52 @@ fun Route.Routes(databaseHelper: DatabaseHelper) {
             }
         }
 
-
     }
 
     route("/token"){
-        post("/refresh") {
-            try {
-                Log.d("UserRoutes", "POST /token/refresh")
-                val tokenRequest = call.receive<Map<String, String>>()
-                val refreshToken = tokenRequest["refreshToken"]
+        authenticate("auth-jwt"){
+            post("/refresh") {
+                try {
+                    Log.d("UserRoutes", "POST /token/refresh")
+                    val tokenRequest = call.receive<Map<String, String>>()
+                    val refreshToken = tokenRequest["refreshToken"]
 
-                if (refreshToken == null || !JwtConfig.isRefreshToken(refreshToken)) {
-                    call.respond(HttpStatusCode.BadRequest, "Refresh token invalide.")
-                    return@post
+                    if (refreshToken == null || !JwtConfig.isRefreshToken(refreshToken)) {
+                        call.respond(HttpStatusCode.BadRequest, "Refresh token invalide.")
+                        return@post
+                    }
+                    userDao.open()
+
+                    if (userDao.isTokenUsed(refreshToken)) {
+                        call.respond(HttpStatusCode.Unauthorized, "Le refresh token a déjà été utilisé.")
+                        return@post
+                    }
+
+                    val decodedJWT = JwtConfig.verifier.verify(refreshToken)
+                    val userId = decodedJWT.getClaim("user_id").asInt()
+
+                    val user = userDao.getUserById(userId)
+
+                    if (user == null) {
+                        call.respond(HttpStatusCode.Unauthorized, "Utilisateur non trouvé.")
+                        return@post
+                    }
+
+                    userDao.markTokenAsUsed(refreshToken)
+                    val newAccessToken = JwtConfig.makeAccessToken(user.nom)
+                    val newRefreshTokenWithExp = JwtConfig.makeRefreshToken(userId)
+                    userDao.addRefreshToken(user.id!!, newRefreshTokenWithExp.token, newRefreshTokenWithExp.expiration)
+                    userDao.close()
+
+                    Log.d("UserRoutes", "newAccesToken : $newAccessToken, \nrefreshToken: $newRefreshTokenWithExp")
+                    call.respond(HttpStatusCode.OK, mapOf(
+                        "accessToken" to newAccessToken,
+                        "refreshToken" to newRefreshTokenWithExp.token
+                    ))
+                } catch (e: Exception) {
+                    Log.d("UserRoutes", "Impossible de rafraichire le token: $e")
+                    call.respond(HttpStatusCode.Unauthorized, "Impossible de rafraîchir le token.")
                 }
-                userDao.open()
-
-                if (userDao.isTokenUsed(refreshToken)) {
-                    call.respond(HttpStatusCode.Unauthorized, "Le refresh token a déjà été utilisé.")
-                    return@post
-                }
-
-                val decodedJWT = JwtConfig.verifier.verify(refreshToken)
-                val userId = decodedJWT.getClaim("user_id").asInt()
-
-                val user = userDao.getUserById(userId)
-
-                if (user == null) {
-                    call.respond(HttpStatusCode.Unauthorized, "Utilisateur non trouvé.")
-                    return@post
-                }
-
-                userDao.markTokenAsUsed(refreshToken)
-                val newAccessToken = JwtConfig.makeAccessToken(user.nom)
-                val newRefreshTokenWithExp = JwtConfig.makeRefreshToken(userId)
-                userDao.addRefreshToken(user.id!!, newRefreshTokenWithExp.token, newRefreshTokenWithExp.expiration)
-                userDao.close()
-
-                Log.d("UserRoutes", "newAccesToken : $newAccessToken, \nrefreshToken: $newRefreshTokenWithExp")
-                call.respond(HttpStatusCode.OK, mapOf(
-                    "accessToken" to newAccessToken,
-                    "refreshToken" to newRefreshTokenWithExp.token
-                ))
-            } catch (e: Exception) {
-                Log.d("UserRoutes", "Impossible de rafraichire le token: $e")
-                call.respond(HttpStatusCode.Unauthorized, "Impossible de rafraîchir le token.")
-            }
-        }
-
-        get("/refresh/list") {
-            try {
-                Log.i("UserRoutes", "GET /token/refresh/list")
-                userDao.open()
-                val refreshTokens = userDao.getAllRefreshTokens()
-                userDao.close()
-                call.respond(HttpStatusCode.OK, refreshTokens)
-            } catch (e: Exception) {
-                Log.e("UserRoutes", "Erreur lors de la récupération des tokens de rafraîchissement : $e")
-                call.respond(HttpStatusCode.InternalServerError, "Une erreur est survenue lors de la récupération des tokens de rafraîchissement.")
             }
         }
     }

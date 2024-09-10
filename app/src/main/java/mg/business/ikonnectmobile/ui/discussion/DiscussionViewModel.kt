@@ -17,8 +17,14 @@ import mg.business.ikonnectmobile.data.model.Discussion
 import mg.business.ikonnectmobile.data.model.Message
 import androidx.lifecycle.MediatorLiveData
 
-
 class DiscussionViewModel(application: Application) : AndroidViewModel(application) {
+
+    // Define constants for the service providers and URIs
+    companion object {
+        val SERVICE_PROVIDERS = listOf("MVola", "OrangeMoney", "AirtelMoney")
+        const val SMS_CONVERSATION_URI = "content://sms/conversations"
+        const val SMS_URI = "content://sms"
+    }
 
     private val _discussions = MutableLiveData<List<Discussion>>()
     val discussions: LiveData<List<Discussion>> get() = _discussions
@@ -27,14 +33,13 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
         loadDiscussions()
     }
 
-
     private fun loadDiscussions() {
         viewModelScope.launch(Dispatchers.IO) {
             val contentResolver: ContentResolver = getApplication<Application>().contentResolver
             val projection = arrayOf(
-                "thread_id","snippet", "msg_count"
+                "thread_id", "snippet", "msg_count"
             )
-            val uri = Uri.parse("content://sms/conversations")
+            val uri = Uri.parse(SMS_CONVERSATION_URI)
 
             val cursor: Cursor? = try {
                 contentResolver.query(uri, projection, null, null, null)
@@ -44,12 +49,20 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
             }
 
             val discussionsList = mutableListOf<Discussion>()
-            Log.d("Load discussion : ", "Load discussions ...")
+            Log.d("Load discussion: ", "Loading discussions...")
 
             cursor?.use {
                 while (it.moveToNext()) {
                     val discussion = mapCursorToDiscussion(it)
-                    discussionsList.add(discussion)
+
+                    // Filter only discussions with messages from specific service providers
+                    val filteredMessages = discussion.messages.filter { message ->
+                        message.senderAddress in SERVICE_PROVIDERS
+                    }
+
+                    if (filteredMessages.isNotEmpty()) {
+                        discussionsList.add(discussion)
+                    }
                 }
             }
             discussionsList.sortByDescending { it.lastMessage?.date }
@@ -57,7 +70,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
         }
     }
 
-    private fun logColumnFromUri(uri:Uri){
+    private fun logColumnFromUri(uri: Uri) {
         val contentResolver: ContentResolver = getApplication<Application>().contentResolver
         try {
             val cursor: Cursor? = contentResolver.query(uri, null, null, null, null)
@@ -81,7 +94,6 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun mapCursorToDiscussion(cursor: Cursor): Discussion {
-
         val threadId = cursor.safeGetInt("thread_id")
         val snippet = cursor.safeGetString("snippet") ?: ""
         val messageCount = cursor.safeGetInt("msg_count")
@@ -123,7 +135,7 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
     }
 
     private fun getMessagesForThread(contentResolver: ContentResolver, threadId: Int): List<Message> {
-        val uri = Uri.parse("content://sms")
+        val uri = Uri.parse(SMS_URI)
         val selection = "thread_id = ?"
         val selectionArgs = arrayOf(threadId.toString())
         val cursor: Cursor? = contentResolver.query(uri, null, selection, selectionArgs, "date ASC")
@@ -132,7 +144,9 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
         cursor?.use {
             while (it.moveToNext()) {
                 val message = mapCursorToMessage(it)
-                messagesList.add(message)
+                if (message.senderAddress in SERVICE_PROVIDERS) {
+                    messagesList.add(message)
+                }
             }
         }
 
@@ -162,8 +176,6 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
         )
     }
 
-
-
     fun getDiscussion(discussionId: String): LiveData<Discussion?> {
         val liveData = MediatorLiveData<Discussion?>()
         val observer = Observer<List<Discussion>> { discussions ->
@@ -176,14 +188,13 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
 
     fun getMessages(discussionId: String): LiveData<List<Message>> {
         val contentResolver: ContentResolver = getApplication<Application>().contentResolver
-        val uri = Uri.parse("content://sms")
+        val uri = Uri.parse(SMS_URI)
         val selection = "thread_id = ?"
         val selectionArgs = arrayOf(discussionId)
         val cursor: Cursor? = contentResolver.query(uri, null, selection, selectionArgs, "date ASC")
 
         val messagesList = mutableListOf<Message>()
         cursor?.use {
-
             while (it.moveToNext()) {
                 val id = cursor.safeGetString("_id")
                 val body = cursor.safeGetString("body")
@@ -212,5 +223,4 @@ class DiscussionViewModel(application: Application) : AndroidViewModel(applicati
 
         return MutableLiveData(messagesList)
     }
-
 }
