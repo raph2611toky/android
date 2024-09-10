@@ -1,6 +1,8 @@
 // Message.kt
 package mg.business.ikonnectmobile.data.model
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class Message(
     val id: String,
     val threadId: Int,

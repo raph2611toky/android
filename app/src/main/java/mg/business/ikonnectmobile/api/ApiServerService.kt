@@ -13,7 +13,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import io.ktor.serialization.kotlinx.json.json
-import api.user.UserRoutes
+import api.user.Routes
+import mg.business.ikonnectmobile.api.mobilemoney.MvolaController
+import mg.business.ikonnectmobile.api.mobilemoney.MobileMoneyRoutes
 import android.app.Notification
 import android.app.NotificationChannel
 import java.net.ServerSocket
@@ -25,6 +27,9 @@ import androidx.core.app.NotificationCompat
 import mg.business.ikonnectmobile.data.DatabaseHelper
 import mg.business.ikonnectmobile.R
 import java.net.NetworkInterface
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 import java.net.InetAddress
 import io.ktor.server.auth.*
 import mg.business.ikonnectmobile.utils.JwtConfig
@@ -192,10 +197,13 @@ class ApiServerService : Service() {
                 }
             }
 
-            val dbConfig = DatabaseHelper.DbConfig("ikonnectarea.db", 1)
+            val dbConfig = DatabaseHelper.DbConfig("ikonnectarea.db", 2)
             val databaseHelper = DatabaseHelper(this@ApiServerService, dbConfig)
+
+            val mvolaController = MvolaController(this@ApiServerService)
             routing {
-                UserRoutes(databaseHelper)
+                Routes(databaseHelper)
+                MobileMoneyRoutes(mvolaController)
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -79,4 +79,14 @@ object DateUtils {
             else -> "Just now"
         }
     }
+
+    fun parseDate(dateStr: String): Long? {
+        return try {
+            val format = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val date = format.parse(dateStr)
+            date?.time
+        } catch (e: Exception) {
+            null
+        }
+    }
 }
