@@ -14,7 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import io.ktor.serialization.kotlinx.json.json
 import api.user.Routes
-import mg.business.ikonnectmobile.api.mobilemoney.MvolaController
+import mg.business.ikonnectmobile.api.mobilemoney.MobileMoneyController
 import mg.business.ikonnectmobile.api.mobilemoney.MobileMoneyRoutes
 import android.app.Notification
 import android.app.NotificationChannel
@@ -200,7 +200,7 @@ class ApiServerService : Service() {
             val dbConfig = DatabaseHelper.DbConfig("ikonnectarea.db", 4)
             val databaseHelper = DatabaseHelper(this@ApiServerService, dbConfig)
 
-            val mvolaController = MvolaController(this@ApiServerService)
+            val mvolaController = MobileMoneyController(this@ApiServerService)
             routing {
                 Routes(databaseHelper)
                 MobileMoneyRoutes(mvolaController, databaseHelper)

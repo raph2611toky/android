@@ -16,12 +16,13 @@ import kotlinx.coroutines.launch
 import mg.business.ikonnectmobile.data.model.Discussion
 import mg.business.ikonnectmobile.data.model.Message
 import androidx.lifecycle.MediatorLiveData
+import mg.business.ikonnectmobile.api.mobilemoney.MobileMoneyController
 
 class DiscussionViewModel(application: Application) : AndroidViewModel(application) {
 
     // Define constants for the service providers and URIs
     companion object {
-        val SERVICE_PROVIDERS = listOf("MVola", "OrangeMoney", "AirtelMoney")
+        val SERVICE_PROVIDERS = MobileMoneyController.SERVICE_PROVIDERS
         const val SMS_CONVERSATION_URI = "content://sms/conversations"
         const val SMS_URI = "content://sms"
     }

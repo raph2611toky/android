@@ -3,6 +3,7 @@ package mg.business.ikonnectmobile.utils
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+import android.util.Log
 
 object DateUtils {
 
@@ -88,5 +89,38 @@ object DateUtils {
         } catch (e: Exception) {
             null
         }
+    }
+
+    fun matchDate(messageBody: String, date: String, timestamp: Long): Boolean {
+        val dateFormats = listOf(
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()),  // YYYY-mm-dd
+            SimpleDateFormat("yyyy/MM/dd", Locale.getDefault()),  // YYYY/mm/dd
+            SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()),  // dd-mm-YYYY
+            SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()),  // dd/MM/YYYY
+            SimpleDateFormat("dd/MM/yy", Locale.getDefault())     // dd/MM/YY (pour MVola)
+        )
+
+        for (format in dateFormats) {
+            try {
+                val formattedDate = format.parse(date)
+                val regexDate = Regex(format.toPattern().replace("yyyy", "\\d{4}")
+                    .replace("yy", "\\d{2}")
+                    .replace("MM", "\\d{2}")
+                    .replace("dd", "\\d{2}"))
+
+                if (regexDate.containsMatchIn(messageBody)) {
+                    val dateMatch = regexDate.find(messageBody)?.value
+                    val parsedDate = format.parse(dateMatch)
+
+                    if (parsedDate == formattedDate) {
+                        return true
+                    }
+                }
+            } catch (e: Exception) {
+            }
+        }
+        val messageDate = Date(timestamp)
+        val messageDateOnly = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(messageDate)
+        return messageDateOnly == date
     }
 }
