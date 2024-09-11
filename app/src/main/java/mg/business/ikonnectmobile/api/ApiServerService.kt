@@ -197,13 +197,13 @@ class ApiServerService : Service() {
                 }
             }
 
-            val dbConfig = DatabaseHelper.DbConfig("ikonnectarea.db", 2)
+            val dbConfig = DatabaseHelper.DbConfig("ikonnectarea.db", 4)
             val databaseHelper = DatabaseHelper(this@ApiServerService, dbConfig)
 
             val mvolaController = MvolaController(this@ApiServerService)
             routing {
                 Routes(databaseHelper)
-                MobileMoneyRoutes(mvolaController)
+                MobileMoneyRoutes(mvolaController, databaseHelper)
             }
         } catch (e: Exception) {
             e.printStackTrace()

@@ -29,11 +29,30 @@ class DatabaseHelper(context: Context, dbConfig: DbConfig) : SQLiteOpenHelper(co
         )
     """
         db.execSQL(CREATE_REFRESH_TOKEN_TABLE)
+
+        val CREATE_MESSAGE_TABLE = """
+            CREATE TABLE $TABLE_MESSAGE (
+                $COLUMN_MESSAGE_ID TEXT PRIMARY KEY,
+                $COLUMN_THREAD_ID INTEGER,
+                $COLUMN_SENDER_ADDRESS TEXT,
+                $COLUMN_BODY TEXT,
+                $COLUMN_DATE LONG,
+                $COLUMN_DATE_SENT LONG,
+                $COLUMN_IS_READ BOOLEAN,
+                $COLUMN_STATUS INTEGER,
+                $COLUMN_TYPE INTEGER,
+                $COLUMN_IS_SEEN BOOLEAN,
+                $COLUMN_RECIPIENT_IDS TEXT,
+                $COLUMN_IS_FROM_ME BOOLEAN
+            )
+        """
+        db.execSQL(CREATE_MESSAGE_TABLE)
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
         db.execSQL("DROP TABLE IF EXISTS $TABLE_USER")
         db.execSQL("DROP TABLE IF EXISTS $TABLE_REFRESH_TOKEN")
+        db.execSQL("DROP TABLE IF EXISTS $TABLE_MESSAGE")
         onCreate(db)
     }
 
@@ -51,6 +70,20 @@ class DatabaseHelper(context: Context, dbConfig: DbConfig) : SQLiteOpenHelper(co
         const val COLUMN_TOKEN = "refresh_token"
         const val COLUMN_EXPIRATION = "expiration"
         const val COLUMN_USED = "deja_utilisé"
+
+        const val TABLE_MESSAGE = "message"
+        const val COLUMN_MESSAGE_ID = "id"
+        const val COLUMN_THREAD_ID = "thread_id"
+        const val COLUMN_SENDER_ADDRESS = "sender_address"
+        const val COLUMN_BODY = "body"
+        const val COLUMN_DATE = "date"
+        const val COLUMN_DATE_SENT = "date_sent"
+        const val COLUMN_IS_READ = "is_read"
+        const val COLUMN_STATUS = "status"
+        const val COLUMN_TYPE = "type"
+        const val COLUMN_IS_SEEN = "is_seen"
+        const val COLUMN_RECIPIENT_IDS = "recipient_ids"
+        const val COLUMN_IS_FROM_ME = "is_from_me"
     }
 
     data class DbConfig(val dbName: String, val dbVersion: Int)

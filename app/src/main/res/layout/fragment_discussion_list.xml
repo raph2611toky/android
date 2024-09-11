@@ -16,9 +16,10 @@
         android:theme="@style/Theme.Ikonnectmobile.Toolbar"
         app:layout_collapseMode="pin"
         app:layout_constraintTop_toTopOf="parent"
+        android:gravity="center_vertical"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:title="" />
+        app:title="Liste des discussions" />
 
 
     <androidx.recyclerview.widget.RecyclerView

@@ -67,7 +67,8 @@ class MvolaController(val context: Context) {
         val uri = Uri.parse("content://sms")
         val selection = "thread_id = ?"
         val selectionArgs = arrayOf(threadId.toString())
-        val cursor: Cursor? = context.contentResolver.query(uri, null, selection, selectionArgs, "date ASC")
+        val cursor: Cursor? =
+            context.contentResolver.query(uri, null, selection, selectionArgs, "date ASC")
 
         val messagesList = mutableListOf<Message>()
         cursor?.use {
@@ -105,7 +106,7 @@ class MvolaController(val context: Context) {
 
     fun getFilteredMvolaMessages(reference: String, numero: String, date: String): List<Message> {
         val allMessages = loadMvolaDiscussions().flatMap { it.messages }
-        val ref = "Ref: "+reference
+        val ref = "Ref: " + reference
         val depot = "1/2 Depot reussi : "
         val recu = " Ar recu"
         return allMessages.filter { message ->
@@ -113,7 +114,7 @@ class MvolaController(val context: Context) {
                     message.body.contains(ref) &&
                     message.body.contains(numero) &&
                     message.body.contains(date) &&
-                    (message.body.contains(depot)||message.body.contains(recu))
+                    (message.body.contains(depot) || message.body.contains(recu))
         }
     }
 
